@@ -1,12 +1,46 @@
 import SwiftUI
 
+class PuzzleState: ObservableObject {
+    @Published var puzzlePieces: [PuzzlePiece] = []
+    @Published var puzzleCompleted = false
+    
+    func placePiece(at index: Int) {
+        var newPieces = puzzlePieces
+        newPieces[index].isPlaced = true
+        puzzlePieces = newPieces
+        
+        // Check if all pieces are placed
+        checkPuzzleCompletion()
+    }
+    
+    func resetGame() {
+        var newPieces = [PuzzlePiece]()
+        for piece in puzzlePieces {
+            var newPiece = piece
+            newPiece.isPlaced = false
+            newPieces.append(newPiece)
+        }
+        
+        puzzlePieces = newPieces.shuffled()
+        puzzleCompleted = false
+    }
+    
+    private func checkPuzzleCompletion() {
+        if puzzlePieces.allSatisfy({ $0.isPlaced }) {
+            print("🎉 ALL PIECES PLACED! Puzzle completed.")
+            puzzleCompleted = true
+        }
+    }
+}
+
 struct GameView: View {
     // MARK: - Properties
-    @State private var puzzlePieces: [PuzzlePiece] = []
+    @StateObject private var puzzleState = PuzzleState()
     @State private var draggedPieceIndex: Int? = nil
-    @State private var dragOffset: CGSize = .zero
+    @State private var dragOffset = CGSize.zero
     @State private var showFullImage = false
-    @State private var puzzleCompleted = false
+    @State private var gridCellPositions: [[(row: Int, column: Int, rect: CGRect)]] = []
+    @State private var debugging = true
     
     // Grid configuration
     let gridSize = 2 // 2x2 puzzle
@@ -19,8 +53,6 @@ struct GameView: View {
             let availableWidth = geometry.size.width
             let gridWidth = min(availableWidth * 0.6, geometry.size.height * 0.6)
             let pieceWidth = (gridWidth - CGFloat(gridSize - 1) * gridSpacing) / CGFloat(gridSize)
-            let gridOriginX = (geometry.size.width - gridWidth) * 0.3
-            let gridOriginY = (geometry.size.height - gridWidth) * 0.5
             
             ZStack {
                 // Main content
@@ -57,16 +89,28 @@ struct GameView: View {
                                                     .fill(Color.gray.opacity(0.3))
                                                     .frame(width: pieceWidth, height: pieceWidth)
                                                     .cornerRadius(4)
+                                                    .overlay(
+                                                        GeometryReader { cellGeo in
+                                                            Color.clear
+                                                                .onAppear {
+                                                                    // Save the cell position
+                                                                    let frame = cellGeo.frame(in: .global)
+                                                                    saveGridCellPosition(row: row, column: column, rect: frame)
+                                                                    print("Cell \(row),\(column) has frame: \(frame)")
+                                                                }
+                                                        }
+                                                    )
                                                 
-                                                // Show placed pieces
-                                                ForEach(puzzlePieces.indices.filter { 
-                                                    puzzlePieces[$0].isPlaced && 
-                                                    puzzlePieces[$0].correctRow == row && 
-                                                    puzzlePieces[$0].correctColumn == column 
-                                                }, id: \.self) { index in
-                                                    PuzzlePieceView(uiImage: puzzlePieces[index].image)
-                                                        .frame(width: pieceWidth, height: pieceWidth)
-                                                        .clipShape(Rectangle())
+                                                // Show placed pieces directly in the cell
+                                                ForEach(puzzleState.puzzlePieces.indices, id: \.self) { index in
+                                                    if puzzleState.puzzlePieces[index].isPlaced && 
+                                                       puzzleState.puzzlePieces[index].correctRow == row && 
+                                                       puzzleState.puzzlePieces[index].correctColumn == column {
+                                                        Image(uiImage: puzzleState.puzzlePieces[index].image)
+                                                            .resizable()
+                                                            .scaledToFit()
+                                                            .frame(width: pieceWidth, height: pieceWidth)
+                                                    }
                                                 }
                                             }
                                             .id("cell_\(row)_\(column)")
@@ -88,82 +132,38 @@ struct GameView: View {
                         
                         // Unplaced pieces
                         VStack(spacing: 10) {
-                            ForEach(puzzlePieces.indices.filter { !puzzlePieces[$0].isPlaced }, id: \.self) { index in
-                                PuzzlePieceView(uiImage: puzzlePieces[index].image)
-                                    .frame(width: pieceWidth, height: pieceWidth)
-                                    .clipShape(Rectangle())
-                                    .shadow(radius: 2)
-                                    .offset(draggedPieceIndex == index ? dragOffset : .zero)
-                                    .gesture(
-                                        DragGesture()
-                                            .onChanged { value in
-                                                draggedPieceIndex = index
-                                                dragOffset = value.translation
-                                            }
-                                            .onEnded { value in
-                                                // Get the final position of the drag
-                                                let finalPosition = CGPoint(
-                                                    x: value.location.x - value.startLocation.x + value.startLocation.x,
-                                                    y: value.location.y - value.startLocation.y + value.startLocation.y
-                                                )
-                                                
-                                                // Calculate if the piece is over a grid cell
-                                                var placedSuccessfully = false
-                                                
-                                                // Check for each grid cell if the piece is over it
-                                                for row in 0..<gridSize {
-                                                    for column in 0..<gridSize {
-                                                        let cellX = gridOriginX + CGFloat(column) * (pieceWidth + gridSpacing) + pieceWidth/2 + gridSpacing
-                                                        let cellY = gridOriginY + CGFloat(row) * (pieceWidth + gridSpacing) + pieceWidth/2 + gridSpacing
-                                                        
-                                                        // Calculate distance between piece center and cell center
-                                                        let distance = sqrt(
-                                                            pow(finalPosition.x - cellX, 2) + 
-                                                            pow(finalPosition.y - cellY, 2)
-                                                        )
-                                                        
-                                                        // If distance is less than 70% of piece width, consider it a match
-                                                        // (70% coverage approximately translates to distance being less than 30% of width)
-                                                        let coverageThreshold = pieceWidth * 0.5
-                                                        
-                                                        if distance < coverageThreshold {
-                                                            // Check if this is the correct position for the piece
-                                                            if row == puzzlePieces[index].correctRow && 
-                                                               column == puzzlePieces[index].correctColumn {
-                                                                
-                                                                // Place the piece
-                                                                withAnimation(.spring()) {
-                                                                    puzzlePieces[index].isPlaced = true
-                                                                    dragOffset = .zero
-                                                                }
-                                                                
-                                                                placedSuccessfully = true
-                                                                
-                                                                // Check if puzzle is complete
-                                                                checkPuzzleCompletion()
-                                                                break
-                                                            }
-                                                        }
+                            ForEach(puzzleState.puzzlePieces.indices, id: \.self) { index in
+                                if !puzzleState.puzzlePieces[index].isPlaced {
+                                    let piece = puzzleState.puzzlePieces[index]
+                                    
+                                    Image(uiImage: piece.image)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: pieceWidth, height: pieceWidth)
+                                        .offset(draggedPieceIndex == index ? dragOffset : .zero)
+                                        .gesture(
+                                            DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                                                .onChanged { value in
+                                                    draggedPieceIndex = index
+                                                    dragOffset = value.translation
+                                                    
+                                                    if debugging {
+                                                        print("Dragging piece \(piece.correctRow),\(piece.correctColumn) at \(value.location)")
+                                                    }
+                                                }
+                                                .onEnded { value in
+                                                    if debugging {
+                                                        print("Released piece \(piece.correctRow),\(piece.correctColumn) at \(value.location)")
                                                     }
                                                     
-                                                    if placedSuccessfully {
-                                                        break
-                                                    }
+                                                    checkForCorrectPlacement(
+                                                        pieceIndex: index,
+                                                        finalLocation: value.location,
+                                                        pieceWidth: pieceWidth
+                                                    )
                                                 }
-                                                
-                                                if !placedSuccessfully {
-                                                    // Return to original position with animation
-                                                    withAnimation(.spring()) {
-                                                        dragOffset = .zero
-                                                    }
-                                                }
-                                                
-                                                // Reset drag state
-                                                if !placedSuccessfully {
-                                                    draggedPieceIndex = nil
-                                                }
-                                            }
-                                    )
+                                        )
+                                }
                             }
                         }
                         .padding()
@@ -171,10 +171,38 @@ struct GameView: View {
                     .frame(maxWidth: .infinity, maxHeight: gridWidth)
                 }
                 .padding()
+                
+                // Debug button
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            debugging.toggle()
+                            printGridCellPositions()
+                        }) {
+                            Text("Debug")
+                                .font(.caption)
+                                .foregroundColor(.white)
+                                .padding(4)
+                                .background(Color.gray.opacity(0.5))
+                                .cornerRadius(4)
+                        }
+                        .opacity(0.7)
+                    }
+                    Spacer()
+                }
+                .padding(.top, 10)
+                .padding(.trailing, 10)
             }
             .onAppear {
                 // Initialize puzzle pieces
+                initializeGridCellPositions()
                 initializePuzzlePieces()
+                
+                // Initial debug printout after a small delay to ensure everything is laid out
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    printGridCellPositions()
+                }
             }
             .fullScreenCover(isPresented: $showFullImage) {
                 ZStack {
@@ -204,13 +232,13 @@ struct GameView: View {
                     showFullImage = false
                 }
             }
-            .alert(isPresented: $puzzleCompleted) {
+            .alert(isPresented: $puzzleState.puzzleCompleted) {
                 Alert(
                     title: Text("Puzzle Completed!"),
                     message: Text("Great job! You finished the puzzle."),
                     dismissButton: .default(Text("Play Again"), action: {
                         // Reset the game
-                        initializePuzzlePieces()
+                        puzzleState.resetGame()
                     })
                 )
             }
@@ -218,6 +246,101 @@ struct GameView: View {
     }
     
     // MARK: - Methods
+    
+    private func initializeGridCellPositions() {
+        gridCellPositions = Array(repeating: [], count: gridSize)
+    }
+    
+    private func saveGridCellPosition(row: Int, column: Int, rect: CGRect) {
+        // Make sure we have enough rows
+        while gridCellPositions.count <= row {
+            gridCellPositions.append([])
+        }
+        
+        // Create a new entry for this cell
+        let cellInfo = (row: row, column: column, rect: rect)
+        
+        // Add this cell to our collection
+        if let existingIndex = gridCellPositions[row].firstIndex(where: { $0.column == column }) {
+            // Update existing
+            gridCellPositions[row][existingIndex] = cellInfo
+        } else {
+            // Add new
+            gridCellPositions[row].append(cellInfo)
+        }
+    }
+    
+    private func printGridCellPositions() {
+        print("====== GRID CELL POSITIONS ======")
+        for row in 0..<gridCellPositions.count {
+            for cellInfo in gridCellPositions[row] {
+                print("Cell [\(cellInfo.row),\(cellInfo.column)]: \(cellInfo.rect)")
+            }
+        }
+        print("================================")
+    }
+    
+    private func checkForCorrectPlacement(pieceIndex: Int, finalLocation: CGPoint, pieceWidth: CGFloat) {
+        let piece = puzzleState.puzzlePieces[pieceIndex]
+        
+        print("Checking placement for piece \(piece.correctRow),\(piece.correctColumn) at \(finalLocation)")
+        
+        // Flag to track if placement succeeded
+        var placed = false
+        
+        // Loop through grid cell positions to find where the piece was dropped
+        for row in gridCellPositions {
+            for cellInfo in row {
+                let cellRect = cellInfo.rect
+                
+                // Make detection more forgiving by expanding the hit area
+                let expandedRect = CGRect(
+                    x: cellRect.origin.x - pieceWidth * 0.2,
+                    y: cellRect.origin.y - pieceWidth * 0.2,
+                    width: cellRect.width + pieceWidth * 0.4,
+                    height: cellRect.height + pieceWidth * 0.4
+                )
+                
+                // Check if this piece is dropped on any cell
+                if expandedRect.contains(finalLocation) {
+                    print("Piece dropped on cell \(cellInfo.row),\(cellInfo.column)")
+                    
+                    // Check if this is the correct cell for this piece
+                    if cellInfo.row == piece.correctRow && cellInfo.column == piece.correctColumn {
+                        print("✅ CORRECT PLACEMENT for piece \(piece.correctRow),\(piece.correctColumn)")
+                        
+                        // Update the piece state using the ObservableObject
+                        puzzleState.placePiece(at: pieceIndex)
+                        
+                        // Reset drag state
+                        draggedPieceIndex = nil
+                        dragOffset = .zero
+                        
+                        placed = true
+                        break
+                    }
+                }
+            }
+            
+            if placed {
+                break
+            }
+        }
+        
+        // If not placed, reset drag state
+        if !placed {
+            print("❌ Not placed correctly, returning to original position")
+            
+            // Reset drag with animation
+            withAnimation(.spring()) {
+                dragOffset = .zero
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                draggedPieceIndex = nil
+            }
+        }
+    }
     
     private func initializePuzzlePieces() {
         // Generate puzzle pieces from the image
@@ -233,25 +356,14 @@ struct GameView: View {
                     image: piecesImages[row][column],
                     correctRow: row,
                     correctColumn: column,
-                    isPlaced: false,
-                    originalPosition: nil
+                    isPlaced: false
                 )
                 pieces.append(piece)
             }
         }
         
         // Shuffle the pieces
-        puzzlePieces = pieces.shuffled()
-        puzzleCompleted = false
-    }
-    
-    private func checkPuzzleCompletion() {
-        if puzzlePieces.allSatisfy({ $0.isPlaced }) {
-            // All pieces are placed, puzzle is complete!
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.puzzleCompleted = true
-            }
-        }
+        puzzleState.puzzlePieces = pieces.shuffled()
     }
 }
 
@@ -262,7 +374,6 @@ struct PuzzlePiece: Identifiable, Equatable {
     let correctRow: Int
     let correctColumn: Int
     var isPlaced: Bool
-    var originalPosition: CGPoint?
     
     static func == (lhs: PuzzlePiece, rhs: PuzzlePiece) -> Bool {
         return lhs.id == rhs.id

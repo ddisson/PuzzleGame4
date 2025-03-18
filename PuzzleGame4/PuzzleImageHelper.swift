@@ -1,45 +1,53 @@
 import SwiftUI
 import UIKit
 
-class PuzzleImageHelper {
+struct PuzzleImageHelper {
     /// Generate puzzle pieces from an image
     /// - Parameters:
     ///   - imageName: The name of the image in Assets.xcassets
     ///   - gridSize: The size of the grid (e.g., 2 for a 2x2 puzzle)
     /// - Returns: An array of cropped UIImages representing puzzle pieces
     static func generatePuzzlePieces(from imageName: String, gridSize: Int) -> [[UIImage]] {
-        guard let image = UIImage(named: imageName) else {
-            print("Failed to load image: \(imageName)")
-            return []
+        guard let originalImage = UIImage(named: imageName) else {
+            fatalError("Image not found: \(imageName)")
         }
         
-        // Get the image dimensions
-        let imageWidth = image.size.width
-        let imageHeight = image.size.height
+        // Create a context to draw the image
+        let imageWidth = originalImage.size.width
+        let imageHeight = originalImage.size.height
         
-        // Calculate piece dimensions
+        // Calculate the size of each piece
         let pieceWidth = imageWidth / CGFloat(gridSize)
         let pieceHeight = imageHeight / CGFloat(gridSize)
         
-        var puzzlePieces: [[UIImage]] = Array(repeating: Array(repeating: UIImage(), count: gridSize), count: gridSize)
+        var pieces = [[UIImage]]()
         
-        // Slice the image into pieces
         for row in 0..<gridSize {
+            var rowPieces = [UIImage]()
+            
             for column in 0..<gridSize {
-                let x = CGFloat(column) * pieceWidth
-                let y = CGFloat(row) * pieceHeight
+                // Calculate the frame for this piece
+                let rect = CGRect(
+                    x: CGFloat(column) * pieceWidth,
+                    y: CGFloat(row) * pieceHeight,
+                    width: pieceWidth,
+                    height: pieceHeight
+                )
                 
-                let rect = CGRect(x: x, y: y, width: pieceWidth, height: pieceHeight)
-                
-                // Create a piece by cropping the original image
-                if let cgImage = image.cgImage?.cropping(to: rect) {
-                    let pieceImage = UIImage(cgImage: cgImage)
-                    puzzlePieces[row][column] = pieceImage
+                // Render the piece
+                let renderer = UIGraphicsImageRenderer(size: rect.size)
+                let pieceImage = renderer.image { context in
+                    // Crop the original image
+                    originalImage.draw(at: CGPoint(x: -rect.origin.x, y: -rect.origin.y))
                 }
+                
+                rowPieces.append(pieceImage)
             }
+            
+            pieces.append(rowPieces)
         }
         
-        return puzzlePieces
+        return pieces
     }
     
     /// Creates a renderable Image from a UIImage

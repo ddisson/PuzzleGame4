@@ -40,168 +40,199 @@ struct GameView: View {
     @State private var dragOffset = CGSize.zero
     @State private var showFullImage = false
     @State private var gridCellPositions: [[(row: Int, column: Int, rect: CGRect)]] = []
-    @State private var debugging = true
+    @State private var debugging = false
     
     // Grid configuration
     let gridSize = 2 // 2x2 puzzle
     let gridSpacing: CGFloat = 2
     let imageName = "anna_elza"
     
+    // Get actual image aspect ratio from the asset
+    var imageAspectRatio: CGFloat {
+        if let uiImage = UIImage(named: imageName) {
+            return uiImage.size.width / uiImage.size.height
+        }
+        return 1.5 // Default fallback
+    }
+    
     // MARK: - Body
     var body: some View {
         GeometryReader { geometry in
             let availableWidth = geometry.size.width
-            let gridWidth = min(availableWidth * 0.6, geometry.size.height * 0.6)
-            let pieceWidth = (gridWidth - CGFloat(gridSize - 1) * gridSpacing) / CGFloat(gridSize)
+            let availableHeight = geometry.size.height
             
-            ZStack {
-                // Main content
-                HStack(spacing: 20) {
-                    // MARK: Left Side - Puzzle Grid and Full Image
-                    VStack {
-                        // Full Image Preview (tappable)
-                        Image(imageName)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: gridWidth, height: gridWidth * 0.6)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .shadow(radius: 3)
-                            .onTapGesture {
-                                showFullImage = true
-                            }
-                            .padding(.bottom)
+            // Make grid cover 60% of screen width (increased from 45%)
+            let gridWidth = availableWidth * 0.6
+            let gridHeight = gridWidth / imageAspectRatio
+            
+            // Calculate cell dimensions
+            let cellWidth = (gridWidth - CGFloat(gridSize - 1) * gridSpacing) / CGFloat(gridSize)
+            let cellHeight = (gridHeight - CGFloat(gridSize - 1) * gridSpacing) / CGFloat(gridSize)
+            
+            HStack(alignment: .top, spacing: 10) {
+                // MARK: Left Side - Puzzle Grid and smaller preview
+                VStack(spacing: 15) {
+                    // Full Image Preview (tappable) - at the top, 50% smaller
+                    Image(imageName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: gridWidth * 0.3) // 50% smaller than previous
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .shadow(radius: 1)
+                        .padding(.top, 10)
+                        .onTapGesture {
+                            showFullImage = true
+                        }
+                    
+                    // Puzzle Grid
+                    ZStack {
+                        // Grid background
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.white)
+                            .shadow(radius: 2)
                         
-                        // Puzzle Grid
-                        ZStack {
-                            // Grid background
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.white)
-                                .shadow(radius: 3)
-                            
-                            // Grid cells
-                            VStack(spacing: gridSpacing) {
-                                ForEach(0..<gridSize, id: \.self) { row in
-                                    HStack(spacing: gridSpacing) {
-                                        ForEach(0..<gridSize, id: \.self) { column in
-                                            ZStack {
-                                                // Grid cell background
-                                                Rectangle()
-                                                    .fill(Color.gray.opacity(0.3))
-                                                    .frame(width: pieceWidth, height: pieceWidth)
-                                                    .cornerRadius(4)
-                                                    .overlay(
-                                                        GeometryReader { cellGeo in
-                                                            Color.clear
-                                                                .onAppear {
-                                                                    // Save the cell position
-                                                                    let frame = cellGeo.frame(in: .global)
-                                                                    saveGridCellPosition(row: row, column: column, rect: frame)
+                        // Grid cells
+                        VStack(spacing: gridSpacing) {
+                            ForEach(0..<gridSize, id: \.self) { row in
+                                HStack(spacing: gridSpacing) {
+                                    ForEach(0..<gridSize, id: \.self) { column in
+                                        ZStack {
+                                            // Grid cell background
+                                            Rectangle()
+                                                .strokeBorder(Color.gray.opacity(0.5), lineWidth: 1)
+                                                .background(Rectangle().fill(Color.white))
+                                                .frame(width: cellWidth, height: cellHeight)
+                                                .overlay(
+                                                    GeometryReader { cellGeo in
+                                                        Color.clear
+                                                            .onAppear {
+                                                                // Save the cell position
+                                                                let frame = cellGeo.frame(in: .global)
+                                                                saveGridCellPosition(row: row, column: column, rect: frame)
+                                                                if debugging {
                                                                     print("Cell \(row),\(column) has frame: \(frame)")
                                                                 }
-                                                        }
-                                                    )
-                                                
-                                                // Show placed pieces directly in the cell
-                                                ForEach(puzzleState.puzzlePieces.indices, id: \.self) { index in
-                                                    if puzzleState.puzzlePieces[index].isPlaced && 
-                                                       puzzleState.puzzlePieces[index].correctRow == row && 
-                                                       puzzleState.puzzlePieces[index].correctColumn == column {
-                                                        Image(uiImage: puzzleState.puzzlePieces[index].image)
-                                                            .resizable()
-                                                            .scaledToFit()
-                                                            .frame(width: pieceWidth, height: pieceWidth)
+                                                            }
                                                     }
+                                                )
+                                            
+                                            // Show placed pieces directly in the cell
+                                            ForEach(puzzleState.puzzlePieces.indices, id: \.self) { index in
+                                                if puzzleState.puzzlePieces[index].isPlaced && 
+                                                   puzzleState.puzzlePieces[index].correctRow == row && 
+                                                   puzzleState.puzzlePieces[index].correctColumn == column {
+                                                    Image(uiImage: puzzleState.puzzlePieces[index].image)
+                                                        .resizable()
+                                                        .scaledToFill()
+                                                        .frame(width: cellWidth, height: cellHeight)
+                                                        .clipped() // Ensure it stays within bounds
                                                 }
                                             }
-                                            .id("cell_\(row)_\(column)")
                                         }
+                                        .id("cell_\(row)_\(column)")
                                     }
                                 }
                             }
-                            .padding(gridSpacing)
                         }
-                        .frame(width: gridWidth, height: gridWidth)
+                        .padding(gridSpacing)
                     }
-                    .frame(width: gridWidth)
+                    .frame(width: gridWidth, height: gridHeight)
+                }
+                
+                // MARK: Right Side - Unplaced Pieces
+                VStack(spacing: 15) {
+                    // Title for unplaced pieces
+                    if debugging {
+                        Text("Pieces")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
                     
-                    // MARK: Right Side - Unplaced Pieces
-                    ZStack {
-                        // Background
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.gray.opacity(0.15))
-                        
-                        // Unplaced pieces
-                        VStack(spacing: 10) {
-                            ForEach(puzzleState.puzzlePieces.indices, id: \.self) { index in
-                                if !puzzleState.puzzlePieces[index].isPlaced {
-                                    let piece = puzzleState.puzzlePieces[index]
-                                    
-                                    Image(uiImage: piece.image)
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: pieceWidth, height: pieceWidth)
-                                        .offset(draggedPieceIndex == index ? dragOffset : .zero)
-                                        .gesture(
-                                            DragGesture(minimumDistance: 0, coordinateSpace: .global)
-                                                .onChanged { value in
-                                                    draggedPieceIndex = index
-                                                    dragOffset = value.translation
-                                                    
-                                                    if debugging {
-                                                        print("Dragging piece \(piece.correctRow),\(piece.correctColumn) at \(value.location)")
-                                                    }
+                    // Container for unplaced pieces
+                    VStack(spacing: 20) {
+                        ForEach(puzzleState.puzzlePieces.indices, id: \.self) { index in
+                            if !puzzleState.puzzlePieces[index].isPlaced {
+                                let piece = puzzleState.puzzlePieces[index]
+                                
+                                Image(uiImage: piece.image)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: cellWidth, height: cellHeight)
+                                    .clipped() // Ensure it stays within bounds
+                                    .shadow(radius: 2)
+                                    .offset(draggedPieceIndex == index ? dragOffset : .zero)
+                                    .gesture(
+                                        DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                                            .onChanged { value in
+                                                draggedPieceIndex = index
+                                                dragOffset = value.translation
+                                                
+                                                if debugging {
+                                                    print("Dragging piece \(piece.correctRow),\(piece.correctColumn) at \(value.location)")
                                                 }
-                                                .onEnded { value in
-                                                    if debugging {
-                                                        print("Released piece \(piece.correctRow),\(piece.correctColumn) at \(value.location)")
-                                                    }
-                                                    
-                                                    checkForCorrectPlacement(
-                                                        pieceIndex: index,
-                                                        finalLocation: value.location,
-                                                        pieceWidth: pieceWidth
-                                                    )
+                                            }
+                                            .onEnded { value in
+                                                if debugging {
+                                                    print("Released piece \(piece.correctRow),\(piece.correctColumn) at \(value.location)")
                                                 }
-                                        )
-                                }
+                                                
+                                                checkForCorrectPlacement(
+                                                    pieceIndex: index,
+                                                    finalLocation: value.location,
+                                                    cellWidth: cellWidth,
+                                                    cellHeight: cellHeight
+                                                )
+                                            }
+                                    )
                             }
                         }
-                        .padding()
                     }
-                    .frame(maxWidth: .infinity, maxHeight: gridWidth)
+                    .padding()
+                    
+                    Spacer() // Push pieces to the top
                 }
-                .padding()
-                
-                // Debug button
-                VStack {
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            debugging.toggle()
-                            printGridCellPositions()
-                        }) {
-                            Text("Debug")
-                                .font(.caption)
-                                .foregroundColor(.white)
-                                .padding(4)
-                                .background(Color.gray.opacity(0.5))
-                                .cornerRadius(4)
-                        }
-                        .opacity(0.7)
-                    }
-                    Spacer()
-                }
-                .padding(.top, 10)
-                .padding(.trailing, 10)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.white)
+            .overlay(
+                // Debug button - only visible if needed
+                Group {
+                    if debugging {
+                        VStack {
+                            HStack {
+                                Spacer()
+                                Button(action: {
+                                    debugging.toggle()
+                                    printGridCellPositions()
+                                }) {
+                                    Text("Debug")
+                                        .font(.caption)
+                                        .foregroundColor(.white)
+                                        .padding(4)
+                                        .background(Color.gray.opacity(0.5))
+                                        .cornerRadius(4)
+                                }
+                                .opacity(0.7)
+                            }
+                            Spacer()
+                        }
+                        .padding(.top, 10)
+                        .padding(.trailing, 10)
+                    }
+                }
+            )
             .onAppear {
                 // Initialize puzzle pieces
                 initializeGridCellPositions()
                 initializePuzzlePieces()
                 
                 // Initial debug printout after a small delay to ensure everything is laid out
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    printGridCellPositions()
+                if debugging {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        printGridCellPositions()
+                    }
                 }
             }
             .fullScreenCover(isPresented: $showFullImage) {
@@ -280,7 +311,7 @@ struct GameView: View {
         print("================================")
     }
     
-    private func checkForCorrectPlacement(pieceIndex: Int, finalLocation: CGPoint, pieceWidth: CGFloat) {
+    private func checkForCorrectPlacement(pieceIndex: Int, finalLocation: CGPoint, cellWidth: CGFloat, cellHeight: CGFloat) {
         let piece = puzzleState.puzzlePieces[pieceIndex]
         
         print("Checking placement for piece \(piece.correctRow),\(piece.correctColumn) at \(finalLocation)")
@@ -295,10 +326,10 @@ struct GameView: View {
                 
                 // Make detection more forgiving by expanding the hit area
                 let expandedRect = CGRect(
-                    x: cellRect.origin.x - pieceWidth * 0.2,
-                    y: cellRect.origin.y - pieceWidth * 0.2,
-                    width: cellRect.width + pieceWidth * 0.4,
-                    height: cellRect.height + pieceWidth * 0.4
+                    x: cellRect.origin.x - cellWidth * 0.2,
+                    y: cellRect.origin.y - cellHeight * 0.2,
+                    width: cellRect.width + cellWidth * 0.4,
+                    height: cellRect.height + cellHeight * 0.4
                 )
                 
                 // Check if this piece is dropped on any cell

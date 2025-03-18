@@ -16,6 +16,10 @@
 		64D65B4E2D8918670070166E /* PuzzleGame4Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D65B4D2D8918670070166E /* PuzzleGame4Tests.swift */; };
 		64D65B582D8918670070166E /* PuzzleGame4UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D65B572D8918670070166E /* PuzzleGame4UITests.swift */; };
 		64D65B5A2D8918670070166E /* PuzzleGame4UITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D65B592D8918670070166E /* PuzzleGame4UITestsLaunchTests.swift */; };
+		64D65B6B2D8923450070166E /* PuzzleSlicerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D65B662D8923450070166E /* PuzzleSlicerView.swift */; };
+		64D65B6C2D8923450070166E /* PuzzleGame4.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 64D65B672D8923450070166E /* PuzzleGame4.xcdatamodeld */; };
+		64D65B6D2D8923450070166E /* PuzzleImageHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D65B692D8923450070166E /* PuzzleImageHelper.swift */; };
+		64D65B6E2D8923450070166E /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D65B6A2D8923450070166E /* GameView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +52,10 @@
 		64D65B532D8918670070166E /* PuzzleGame4UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PuzzleGame4UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		64D65B572D8918670070166E /* PuzzleGame4UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuzzleGame4UITests.swift; sourceTree = "<group>"; };
 		64D65B592D8918670070166E /* PuzzleGame4UITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuzzleGame4UITestsLaunchTests.swift; sourceTree = "<group>"; };
+		64D65B662D8923450070166E /* PuzzleSlicerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PuzzleSlicerView.swift; sourceTree = "<group>"; };
+		64D65B682D8923450070166E /* PuzzleGame4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PuzzleGame4.xcdatamodel; sourceTree = "<group>"; };
+		64D65B692D8923450070166E /* PuzzleImageHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PuzzleImageHelper.swift; sourceTree = "<group>"; };
+		64D65B6A2D8923450070166E /* GameView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +86,7 @@
 		64D65B2B2D8918660070166E = {
 			isa = PBXGroup;
 			children = (
+				64D65B672D8923450070166E /* PuzzleGame4.xcdatamodeld */,
 				64D65B362D8918660070166E /* PuzzleGame4 */,
 				64D65B4C2D8918670070166E /* PuzzleGame4Tests */,
 				64D65B562D8918670070166E /* PuzzleGame4UITests */,
@@ -98,12 +107,15 @@
 		64D65B362D8918660070166E /* PuzzleGame4 */ = {
 			isa = PBXGroup;
 			children = (
-				64D65B372D8918660070166E /* PuzzleGame4App.swift */,
-				64D65B392D8918660070166E /* ContentView.swift */,
 				64D65B3B2D8918670070166E /* Assets.xcassets */,
+				64D65B3D2D8918670070166E /* Preview Content */,
+				64D65B392D8918660070166E /* ContentView.swift */,
+				64D65B6A2D8923450070166E /* GameView.swift */,
 				64D65B402D8918670070166E /* Persistence.swift */,
 				64D65B422D8918670070166E /* PuzzleGame4.xcdatamodeld */,
-				64D65B3D2D8918670070166E /* Preview Content */,
+				64D65B372D8918660070166E /* PuzzleGame4App.swift */,
+				64D65B692D8923450070166E /* PuzzleImageHelper.swift */,
+				64D65B662D8923450070166E /* PuzzleSlicerView.swift */,
 			);
 			path = PuzzleGame4;
 			sourceTree = "<group>";
@@ -264,9 +276,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				64D65B442D8918670070166E /* PuzzleGame4.xcdatamodeld in Sources */,
+				64D65B6B2D8923450070166E /* PuzzleSlicerView.swift in Sources */,
 				64D65B412D8918670070166E /* Persistence.swift in Sources */,
 				64D65B3A2D8918660070166E /* ContentView.swift in Sources */,
+				64D65B6C2D8923450070166E /* PuzzleGame4.xcdatamodeld in Sources */,
 				64D65B382D8918660070166E /* PuzzleGame4App.swift in Sources */,
+				64D65B6E2D8923450070166E /* GameView.swift in Sources */,
+				64D65B6D2D8923450070166E /* PuzzleImageHelper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -605,6 +621,17 @@
 			);
 			currentVersion = 64D65B432D8918670070166E /* PuzzleGame4.xcdatamodel */;
 			path = PuzzleGame4.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+		64D65B672D8923450070166E /* PuzzleGame4.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				64D65B682D8923450070166E /* PuzzleGame4.xcdatamodel */,
+			);
+			currentVersion = 64D65B682D8923450070166E /* PuzzleGame4.xcdatamodel */;
+			name = PuzzleGame4.xcdatamodeld;
+			path = /Users/dmitrydisson/Documents/Games/PuzzleGame4/PuzzleGame4/PuzzleGame4.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};

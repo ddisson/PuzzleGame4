@@ -42,11 +42,36 @@ struct GameView: View {
     @State private var gridCellPositions: [[(row: Int, column: Int, rect: CGRect)]] = []
     @State private var debugging = true // Set to true to help debug placement issues
     @State private var gridInitialized = false // Flag to track if grid cells are initialized
+    @Environment(\.presentationMode) var presentationMode
     
-    // Grid configuration
-    let gridSize = 2 // 2x2 puzzle
+    // Level parameter for configurable puzzles
+    var level: PuzzleLevel?
+    
+    // Grid configuration - gets values from level if provided
+    var gridRows: Int {
+        return level?.gridRows ?? 2
+    }
+    
+    var gridColumns: Int {
+        return level?.gridColumns ?? 2
+    }
+    
+    var imageName: String {
+        return level?.imageName ?? "anna_elza"
+    }
+    
     let gridSpacing: CGFloat = 2
-    let imageName = "anna_elza"
+    
+    // Initializers for backward compatibility
+    init() {
+        // Default initializer with no level
+        self.level = nil
+    }
+    
+    init(level: PuzzleLevel) {
+        // Level-specific initializer
+        self.level = level
+    }
     
     // Get actual image aspect ratio from the asset
     var imageAspectRatio: CGFloat {
@@ -67,12 +92,41 @@ struct GameView: View {
             let gridHeight = gridWidth / imageAspectRatio
             
             // Calculate cell dimensions
-            let cellWidth = (gridWidth - CGFloat(gridSize - 1) * gridSpacing) / CGFloat(gridSize)
-            let cellHeight = (gridHeight - CGFloat(gridSize - 1) * gridSpacing) / CGFloat(gridSize)
+            let cellWidth = (gridWidth - CGFloat(gridColumns - 1) * gridSpacing) / CGFloat(gridColumns)
+            let cellHeight = (gridHeight - CGFloat(gridRows - 1) * gridSpacing) / CGFloat(gridRows)
             
             HStack(alignment: .top, spacing: 10) {
                 // MARK: Left Side - Puzzle Grid and smaller preview
                 VStack(spacing: 15) {
+                    // Level name and back button if we're in a level
+                    if level != nil {
+                        HStack {
+                            Button(action: {
+                                presentationMode.wrappedValue.dismiss()
+                            }) {
+                                Image(systemName: "arrow.left")
+                                    .foregroundColor(.blue)
+                                Text("Back")
+                                    .foregroundColor(.blue)
+                            }
+                            
+                            Spacer()
+                            
+                            Text(level?.name ?? "Puzzle")
+                                .font(.headline)
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                puzzleState.resetGame()
+                            }) {
+                                Image(systemName: "arrow.clockwise")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                    
                     // Full Image Preview (tappable) - at the top, 50% smaller
                     Image(imageName)
                         .resizable()
@@ -80,7 +134,7 @@ struct GameView: View {
                         .frame(width: gridWidth * 0.3) // 50% smaller than previous
                         .clipShape(RoundedRectangle(cornerRadius: 4))
                         .shadow(radius: 1)
-                        .padding(.top, 10)
+                        .padding(.top, level == nil ? 10 : 0)
                         .onTapGesture {
                             showFullImage = true
                         }
@@ -94,9 +148,9 @@ struct GameView: View {
                         
                         // Grid cells
                         VStack(spacing: gridSpacing) {
-                            ForEach(0..<gridSize, id: \.self) { row in
+                            ForEach(0..<gridRows, id: \.self) { row in
                                 HStack(spacing: gridSpacing) {
-                                    ForEach(0..<gridSize, id: \.self) { column in
+                                    ForEach(0..<gridColumns, id: \.self) { column in
                                         ZStack {
                                             // Grid cell background
                                             Rectangle()
@@ -140,7 +194,7 @@ struct GameView: View {
                                         .id("cell_\(row)_\(column)")
                                         .onAppear {
                                             // Mark this cell as initialized when it appears
-                                            if row == gridSize - 1 && column == gridSize - 1 {
+                                            if row == gridRows - 1 && column == gridColumns - 1 {
                                                 // Last cell has appeared, delay to ensure all cells are properly positioned
                                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                                     gridInitialized = true
@@ -342,7 +396,7 @@ struct GameView: View {
     // MARK: - Methods
     
     private func initializeGridCellPositions() {
-        gridCellPositions = Array(repeating: [], count: gridSize)
+        gridCellPositions = Array(repeating: [], count: gridRows)
     }
     
     private func saveGridCellPosition(row: Int, column: Int, rect: CGRect) {
@@ -535,13 +589,17 @@ struct GameView: View {
     
     private func initializePuzzlePieces() {
         // Generate puzzle pieces from the image
-        let piecesImages = PuzzleImageHelper.generatePuzzlePieces(from: imageName, gridSize: gridSize)
+        let piecesImages = PuzzleImageHelper.generatePuzzlePieces(
+            from: imageName,
+            gridRows: gridRows,
+            gridColumns: gridColumns
+        )
         
         var pieces = [PuzzlePiece]()
         
         // Create PuzzlePiece models
-        for row in 0..<gridSize {
-            for column in 0..<gridSize {
+        for row in 0..<gridRows {
+            for column in 0..<gridColumns {
                 let piece = PuzzlePiece(
                     id: UUID(),
                     image: piecesImages[row][column],

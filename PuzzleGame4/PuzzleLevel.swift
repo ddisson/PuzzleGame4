@@ -32,6 +32,13 @@ struct PuzzleLevel: Identifiable {
             gridColumns: 2,
             difficulty: .easy
         ),
+        PuzzleLevel(
+            name: "Peppa Doctor",
+            imageName: "peppa_doctor",
+            gridRows: 2,
+            gridColumns: 3,
+            difficulty: .medium
+        ),
         // Additional levels can be added here
     ]
 } 

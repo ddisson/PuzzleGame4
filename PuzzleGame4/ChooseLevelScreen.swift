@@ -1,91 +1,93 @@
 import SwiftUI
 
-struct ChooseLevelScreen: View {
-    @State private var navigateToGame = false
-    @State private var selectedLevel: PuzzleLevel?
-    
-    var body: some View {
-        NavigationView {
-            VStack {
-                // Header
-                Text("Puzzle Game")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .padding(.top, 30)
-                
-                Text("Choose a level")
-                    .font(.headline)
-                    .foregroundColor(.gray)
-                    .padding(.bottom, 30)
-                
-                // Level cards
-                ScrollView {
-                    VStack(spacing: 20) {
-                        ForEach(PuzzleLevel.allLevels) { level in
-                            Button(action: {
-                                selectedLevel = level
-                                navigateToGame = true
-                            }) {
-                                LevelCard(level: level)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-                
-                // Navigation link (hidden) for navigating to the game
-                NavigationLink(
-                    destination: GameView(),
-                    isActive: $navigateToGame,
-                    label: { EmptyView() }
-                )
-            }
-        }
-        .navigationViewStyle(StackNavigationViewStyle())
-    }
-}
-
 struct LevelCard: View {
     let level: PuzzleLevel
     
     var body: some View {
-        HStack {
-            // Level preview image
+        VStack {
+            // Image
             Image(level.imageName)
                 .resizable()
-                .scaledToFill()
-                .frame(width: 80, height: 80)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .scaledToFit()
+                .frame(height: 120)
+                .cornerRadius(8)
+                .shadow(radius: 2)
             
-            // Level details
-            VStack(alignment: .leading, spacing: 4) {
-                Text(level.name)
-                    .font(.headline)
-                
-                Text("Grid: \(level.gridRows)×\(level.gridColumns)")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-                
-                Text("Difficulty: \(level.difficulty.description)")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
-            .padding(.leading, 10)
+            // Level name
+            Text(level.name)
+                .font(.headline)
+                .padding(.top, 4)
             
-            Spacer()
+            // Grid size
+            Text("\(level.gridRows)×\(level.gridColumns) Puzzle")
+                .font(.subheadline)
+                .foregroundColor(.gray)
             
-            // Play arrow
-            Image(systemName: "play.circle.fill")
-                .font(.system(size: 30))
-                .foregroundColor(.blue)
+            // Difficulty
+            Text(level.difficulty.description)
+                .font(.caption)
+                .foregroundColor(difficultyColor(for: level.difficulty))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 2)
+                .background(difficultyColor(for: level.difficulty).opacity(0.1))
+                .cornerRadius(4)
+                .padding(.top, 2)
         }
         .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 15)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-        )
+        .frame(width: 180)
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(radius: 1)
+    }
+    
+    private func difficultyColor(for difficulty: PuzzleLevel.Difficulty) -> Color {
+        switch difficulty {
+        case .easy:
+            return .green
+        case .medium:
+            return .orange
+        case .hard:
+            return .red
+        }
+    }
+}
+
+struct ChooseLevelScreen: View {
+    @State private var selectedLevel: PuzzleLevel?
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack {
+                    // Game Title
+                    Text("Puzzle Game")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .padding(.top, 20)
+                    
+                    Text("Choose a level to play")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .padding(.bottom, 20)
+                    
+                    // Level Grid
+                    LazyVGrid(columns: [
+                        GridItem(.adaptive(minimum: 160), spacing: 20)
+                    ], spacing: 20) {
+                        ForEach(PuzzleLevel.allLevels) { level in
+                            NavigationLink(destination: GameView(level: level)) {
+                                LevelCard(level: level)
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                .padding(.bottom, 50)
+            }
+            .background(Color(UIColor.systemGray6))
+            .navigationBarHidden(true)
+        }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
 }
 

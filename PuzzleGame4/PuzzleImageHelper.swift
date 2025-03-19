@@ -2,47 +2,46 @@ import SwiftUI
 import UIKit
 
 struct PuzzleImageHelper {
-    /// Generate puzzle pieces from an image
+    /// Generate a 2D array of puzzle piece images from a single image
     /// - Parameters:
-    ///   - imageName: The name of the image in Assets.xcassets
-    ///   - gridRows: The number of rows in the grid
-    ///   - gridColumns: The number of columns in the grid
-    /// - Returns: An array of cropped UIImages representing puzzle pieces
-    static func generatePuzzlePieces(from imageName: String, gridRows: Int, gridColumns: Int) -> [[UIImage]] {
-        guard let originalImage = UIImage(named: imageName) else {
-            fatalError("Image not found: \(imageName)")
+    ///   - imageName: The name of the source image in the asset catalog
+    ///   - gridRows: Number of rows in the puzzle grid
+    ///   - gridColumns: Number of columns in the puzzle grid
+    /// - Returns: A 2D array of UIImages representing the puzzle pieces
+    static func generatePuzzlePieces(
+        from imageName: String,
+        gridRows: Int,
+        gridColumns: Int
+    ) -> [[UIImage]] {
+        // For backward compatibility
+        guard let image = UIImage(named: imageName) else {
+            return Array(repeating: Array(repeating: UIImage(), count: gridColumns), count: gridRows)
         }
         
-        // Create a context to draw the image
-        let imageWidth = originalImage.size.width
-        let imageHeight = originalImage.size.height
-        
-        // Calculate the size of each piece
-        let pieceWidth = imageWidth / CGFloat(gridColumns)
-        let pieceHeight = imageHeight / CGFloat(gridRows)
+        // Calculate each piece's size
+        let pieceWidth = image.size.width / CGFloat(gridColumns)
+        let pieceHeight = image.size.height / CGFloat(gridRows)
         
         var pieces = [[UIImage]]()
         
+        // Generate the pieces
         for row in 0..<gridRows {
             var rowPieces = [UIImage]()
             
             for column in 0..<gridColumns {
-                // Calculate the frame for this piece
-                let rect = CGRect(
-                    x: CGFloat(column) * pieceWidth,
-                    y: CGFloat(row) * pieceHeight,
-                    width: pieceWidth,
-                    height: pieceHeight
-                )
+                // Calculate the crop rectangle for this piece
+                let x = CGFloat(column) * pieceWidth
+                let y = CGFloat(row) * pieceHeight
+                let rect = CGRect(x: x, y: y, width: pieceWidth, height: pieceHeight)
                 
-                // Render the piece
-                let renderer = UIGraphicsImageRenderer(size: rect.size)
-                let pieceImage = renderer.image { context in
-                    // Crop the original image
-                    originalImage.draw(at: CGPoint(x: -rect.origin.x, y: -rect.origin.y))
+                // Create the cropped image
+                if let cgImage = image.cgImage?.cropping(to: rect) {
+                    let pieceImage = UIImage(cgImage: cgImage)
+                    rowPieces.append(pieceImage)
+                } else {
+                    // Fallback to an empty image if cropping fails
+                    rowPieces.append(UIImage())
                 }
-                
-                rowPieces.append(pieceImage)
             }
             
             pieces.append(rowPieces)

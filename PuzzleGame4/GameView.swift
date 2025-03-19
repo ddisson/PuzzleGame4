@@ -40,7 +40,8 @@ struct GameView: View {
     @State private var dragOffset = CGSize.zero
     @State private var showFullImage = false
     @State private var gridCellPositions: [[(row: Int, column: Int, rect: CGRect)]] = []
-    @State private var debugging = false
+    @State private var debugging = true // Set to true to help debug placement issues
+    @State private var gridInitialized = false // Flag to track if grid cells are initialized
     
     // Grid configuration
     let gridSize = 2 // 2x2 puzzle
@@ -106,8 +107,8 @@ struct GameView: View {
                                                     GeometryReader { cellGeo in
                                                         Color.clear
                                                             .onAppear {
-                                                                // Save the cell position
-                                                                let frame = cellGeo.frame(in: .global)
+                                                                // Save the cell position using GeometryReader's frame in the proper coordinate space
+                                                                let frame = cellGeo.frame(in: .named("gameSpace"))
                                                                 saveGridCellPosition(row: row, column: column, rect: frame)
                                                                 if debugging {
                                                                     print("Cell \(row),\(column) has frame: \(frame)")
@@ -115,6 +116,13 @@ struct GameView: View {
                                                             }
                                                     }
                                                 )
+                                            
+                                            // When debugging, show cell coordinates
+                                            if debugging {
+                                                Text("\(row),\(column)")
+                                                    .font(.system(size: 10))
+                                                    .foregroundColor(.gray.opacity(0.7))
+                                            }
                                             
                                             // Show placed pieces directly in the cell
                                             ForEach(puzzleState.puzzlePieces.indices, id: \.self) { index in
@@ -130,6 +138,19 @@ struct GameView: View {
                                             }
                                         }
                                         .id("cell_\(row)_\(column)")
+                                        .onAppear {
+                                            // Mark this cell as initialized when it appears
+                                            if row == gridSize - 1 && column == gridSize - 1 {
+                                                // Last cell has appeared, delay to ensure all cells are properly positioned
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                                    gridInitialized = true
+                                                    if debugging {
+                                                        print("✅ GRID FULLY INITIALIZED")
+                                                        printGridCellPositions()
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -148,6 +169,13 @@ struct GameView: View {
                             .foregroundColor(.gray)
                     }
                     
+                    // Grid initialization status
+                    if debugging {
+                        Text(gridInitialized ? "Grid Ready" : "Grid Initializing...")
+                            .font(.caption)
+                            .foregroundColor(gridInitialized ? .green : .red)
+                    }
+                    
                     // Container for unplaced pieces
                     VStack(spacing: 20) {
                         ForEach(puzzleState.puzzlePieces.indices, id: \.self) { index in
@@ -160,9 +188,21 @@ struct GameView: View {
                                     .frame(width: cellWidth, height: cellHeight)
                                     .clipped() // Ensure it stays within bounds
                                     .shadow(radius: 2)
+                                    .overlay(
+                                        // When debugging, show piece coordinates
+                                        Group {
+                                            if debugging {
+                                                Text("\(piece.correctRow),\(piece.correctColumn)")
+                                                    .font(.system(size: 10))
+                                                    .foregroundColor(.white)
+                                                    .padding(2)
+                                                    .background(Color.black.opacity(0.5))
+                                            }
+                                        }
+                                    )
                                     .offset(draggedPieceIndex == index ? dragOffset : .zero)
                                     .gesture(
-                                        DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                                        DragGesture(minimumDistance: 0, coordinateSpace: .named("gameSpace"))
                                             .onChanged { value in
                                                 draggedPieceIndex = index
                                                 dragOffset = value.translation
@@ -172,10 +212,28 @@ struct GameView: View {
                                                 }
                                             }
                                             .onEnded { value in
-                                                if debugging {
-                                                    print("Released piece \(piece.correctRow),\(piece.correctColumn) at \(value.location)")
+                                                // Only process placement if grid is initialized
+                                                if !gridInitialized {
+                                                    print("⚠️ Grid not yet initialized, cannot place piece")
+                                                    withAnimation(.spring()) {
+                                                        dragOffset = .zero
+                                                    }
+                                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                                        draggedPieceIndex = nil
+                                                    }
+                                                    return
                                                 }
                                                 
+                                                if debugging {
+                                                    print("Released piece \(piece.correctRow),\(piece.correctColumn) at \(value.location)")
+                                                    print("Final location: \(value.location)")
+                                                    print("Piece has correctRow: \(piece.correctRow), correctColumn: \(piece.correctColumn)")
+                                                }
+                                                
+                                                // Don't calculate the start position, just use the final location
+                                                // which is in our consistent coordinate space
+                                                
+                                                // Attempt to place the piece directly instead of using the closest cell method
                                                 checkForCorrectPlacement(
                                                     pieceIndex: index,
                                                     finalLocation: value.location,
@@ -196,6 +254,7 @@ struct GameView: View {
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.white)
+            .coordinateSpace(name: "gameSpace") // Add a consistent coordinate space for the whole game view
             .overlay(
                 // Debug button - only visible if needed
                 Group {
@@ -226,7 +285,11 @@ struct GameView: View {
             .onAppear {
                 // Initialize puzzle pieces
                 initializeGridCellPositions()
-                initializePuzzlePieces()
+                
+                // Delay piece initialization to ensure grid cells are ready
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    initializePuzzlePieces()
+                }
                 
                 // Initial debug printout after a small delay to ensure everything is laid out
                 if debugging {
@@ -311,10 +374,108 @@ struct GameView: View {
         print("================================")
     }
     
+    private func findClosestGridCell(to location: CGPoint) -> (row: Int, column: Int, distance: CGFloat)? {
+        var closestCell: (row: Int, column: Int, distance: CGFloat)? = nil
+        
+        // Loop through all cells to find the closest one
+        for row in 0..<gridCellPositions.count {
+            for cellInfo in gridCellPositions[row] {
+                let cellRect = cellInfo.rect
+                let cellCenter = CGPoint(
+                    x: cellRect.midX,
+                    y: cellRect.midY
+                )
+                
+                // Calculate distance to cell center
+                let distance = sqrt(
+                    pow(location.x - cellCenter.x, 2) +
+                    pow(location.y - cellCenter.y, 2)
+                )
+                
+                if debugging {
+                    print("Distance from (\(location.x), \(location.y)) to cell [\(cellInfo.row),\(cellInfo.column)] center (\(cellCenter.x), \(cellCenter.y)): \(distance)")
+                }
+                
+                // Update closest if this is closer or if we don't have a closest yet
+                if closestCell == nil || distance < closestCell!.distance {
+                    closestCell = (cellInfo.row, cellInfo.column, distance)
+                }
+            }
+        }
+        
+        return closestCell
+    }
+    
+    private func placePieceAtClosestCell(pieceIndex: Int, finalLocation: CGPoint, cellWidth: CGFloat, cellHeight: CGFloat) {
+        let piece = puzzleState.puzzlePieces[pieceIndex]
+        
+        // Double-check we have grid cells to work with
+        if gridCellPositions.isEmpty {
+            print("⚠️ No grid cells initialized! Cannot check for placement.")
+            resetDragState()
+            return
+        }
+        
+        // First, try to find if the piece is directly over a cell
+        if let closestCell = findClosestGridCell(to: finalLocation) {
+            if debugging {
+                print("Closest cell to drop: [\(closestCell.row),\(closestCell.column)], distance: \(closestCell.distance)")
+                print("Piece needs to go to: [\(piece.correctRow),\(piece.correctColumn)]")
+            }
+            
+            // Check if this is the correct cell for this piece
+            let isCorrectCell = closestCell.row == piece.correctRow && closestCell.column == piece.correctColumn
+            
+            // Add a reasonable distance threshold - if it's within the cell width/height
+            let maxAllowableDistance = max(cellWidth, cellHeight) * 0.75 // 75% of cell size
+            let isCloseEnough = closestCell.distance < maxAllowableDistance
+            
+            if isCorrectCell && isCloseEnough {
+                print("✅ CORRECT CELL MATCH! Placing piece \(piece.correctRow),\(piece.correctColumn)")
+                
+                // Update piece state
+                placePieceDirectly(at: pieceIndex)
+                return
+            } else if isCorrectCell {
+                print("❌ Correct cell but too far away, distance: \(closestCell.distance)")
+            }
+        }
+        
+        // If we get here, the piece was not placed correctly
+        print("❌ Not placed correctly, returning to original position")
+        resetDragState()
+    }
+    
+    private func placePieceDirectly(at index: Int) {
+        // Create a copy of the pieces array and update the piece
+        puzzleState.placePiece(at: index)
+        
+        // Reset drag state
+        resetDragState()
+    }
+    
+    private func resetDragState() {
+        // Reset drag with animation
+        withAnimation(.spring()) {
+            dragOffset = .zero
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            draggedPieceIndex = nil
+        }
+    }
+    
     private func checkForCorrectPlacement(pieceIndex: Int, finalLocation: CGPoint, cellWidth: CGFloat, cellHeight: CGFloat) {
         let piece = puzzleState.puzzlePieces[pieceIndex]
         
         print("Checking placement for piece \(piece.correctRow),\(piece.correctColumn) at \(finalLocation)")
+        
+        // Double-check we have grid cells to work with
+        if gridCellPositions.isEmpty {
+            print("⚠️ No grid cells initialized! Cannot check for placement.")
+            resetDragState()
+            return
+        }
         
         // Flag to track if placement succeeded
         var placed = false
@@ -324,52 +485,51 @@ struct GameView: View {
             for cellInfo in row {
                 let cellRect = cellInfo.rect
                 
-                // Make detection more forgiving by expanding the hit area
+                // Make detection reasonably forgiving (less than before)
                 let expandedRect = CGRect(
-                    x: cellRect.origin.x - cellWidth * 0.2,
-                    y: cellRect.origin.y - cellHeight * 0.2,
-                    width: cellRect.width + cellWidth * 0.4,
-                    height: cellRect.height + cellHeight * 0.4
+                    x: cellRect.origin.x - cellWidth * 0.3, // More reasonable hit area - 30% expansion
+                    y: cellRect.origin.y - cellHeight * 0.3,
+                    width: cellRect.width + cellWidth * 0.6,
+                    height: cellRect.height + cellHeight * 0.6
                 )
                 
-                // Check if this piece is dropped on any cell
-                if expandedRect.contains(finalLocation) {
-                    print("Piece dropped on cell \(cellInfo.row),\(cellInfo.column)")
+                // Debug hit testing
+                if debugging {
+                    print("Testing cell [\(cellInfo.row),\(cellInfo.column)]")
+                    print("Cell rect: \(cellRect)")
+                    print("Expanded rect: \(expandedRect)")
+                    print("Contains drop point? \(expandedRect.contains(finalLocation))")
                     
-                    // Check if this is the correct cell for this piece
-                    if cellInfo.row == piece.correctRow && cellInfo.column == piece.correctColumn {
-                        print("✅ CORRECT PLACEMENT for piece \(piece.correctRow),\(piece.correctColumn)")
-                        
-                        // Update the piece state using the ObservableObject
-                        puzzleState.placePiece(at: pieceIndex)
-                        
-                        // Reset drag state
-                        draggedPieceIndex = nil
-                        dragOffset = .zero
-                        
-                        placed = true
-                        break
-                    }
+                    // Calculate and print distance to this cell's center
+                    let cellCenter = CGPoint(x: cellRect.midX, y: cellRect.midY)
+                    let distance = sqrt(
+                        pow(finalLocation.x - cellCenter.x, 2) +
+                        pow(finalLocation.y - cellCenter.y, 2)
+                    )
+                    print("Distance to center: \(distance)")
                 }
-            }
-            
-            if placed {
-                break
+                
+                // Check if this is the correct cell for this piece AND it's within the expanded hit area
+                if cellInfo.row == piece.correctRow && 
+                   cellInfo.column == piece.correctColumn && 
+                   expandedRect.contains(finalLocation) {
+                    
+                    print("✅ CORRECT CELL MATCH! Placing piece \(piece.correctRow),\(piece.correctColumn)")
+                    
+                    // Update piece state
+                    puzzleState.placePiece(at: pieceIndex)
+                    
+                    placed = true
+                    resetDragState()
+                    return
+                }
             }
         }
         
         // If not placed, reset drag state
         if !placed {
             print("❌ Not placed correctly, returning to original position")
-            
-            // Reset drag with animation
-            withAnimation(.spring()) {
-                dragOffset = .zero
-            }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                draggedPieceIndex = nil
-            }
+            resetDragState()
         }
     }
     

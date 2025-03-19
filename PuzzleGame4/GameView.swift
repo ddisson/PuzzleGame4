@@ -131,7 +131,7 @@ struct GameView: View {
                     Image(imageName)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: gridWidth * 0.3) // 50% smaller than previous
+                        .frame(width: gridWidth * 0.2) // Smaller: reduced from 0.3 to 0.2
                         .clipShape(RoundedRectangle(cornerRadius: 4))
                         .shadow(radius: 1)
                         .padding(.top, level == nil ? 10 : 0)
@@ -212,6 +212,7 @@ struct GameView: View {
                         .padding(gridSpacing)
                     }
                     .frame(width: gridWidth, height: gridHeight)
+                    .padding(.bottom, 40) // Add bottom padding to raise the grid up
                 }
                 
                 // MARK: Right Side - Unplaced Pieces
@@ -309,6 +310,7 @@ struct GameView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.white)
             .coordinateSpace(name: "gameSpace") // Add a consistent coordinate space for the whole game view
+            .navigationBarHidden(true) // Hide any navigation bar to prevent duplication
             .overlay(
                 // Debug button - only visible if needed
                 Group {

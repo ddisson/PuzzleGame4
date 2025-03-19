@@ -75,7 +75,9 @@ struct ChooseLevelScreen: View {
                         GridItem(.adaptive(minimum: 160), spacing: 20)
                     ], spacing: 20) {
                         ForEach(PuzzleLevel.allLevels) { level in
-                            NavigationLink(destination: GameView(level: level)) {
+                            NavigationLink {
+                                GameView(level: level)
+                            } label: {
                                 LevelCard(level: level)
                             }
                         }

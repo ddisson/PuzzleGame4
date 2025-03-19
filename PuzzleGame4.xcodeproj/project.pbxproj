@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6411FE9F2D8A9C41002B2339 /* ChooseLevelScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6411FE9D2D8A9C40002B2339 /* ChooseLevelScreen.swift */; };
+		6411FEA02D8A9C41002B2339 /* PuzzleLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6411FE9E2D8A9C41002B2339 /* PuzzleLevel.swift */; };
 		64D65B382D8918660070166E /* PuzzleGame4App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D65B372D8918660070166E /* PuzzleGame4App.swift */; };
 		64D65B3A2D8918660070166E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D65B392D8918660070166E /* ContentView.swift */; };
 		64D65B3C2D8918670070166E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64D65B3B2D8918670070166E /* Assets.xcassets */; };
@@ -40,6 +42,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		6411FE9D2D8A9C40002B2339 /* ChooseLevelScreen.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChooseLevelScreen.swift; sourceTree = "<group>"; };
+		6411FE9E2D8A9C41002B2339 /* PuzzleLevel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PuzzleLevel.swift; sourceTree = "<group>"; };
 		64D65B342D8918660070166E /* PuzzleGame4.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PuzzleGame4.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64D65B372D8918660070166E /* PuzzleGame4App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuzzleGame4App.swift; sourceTree = "<group>"; };
 		64D65B392D8918660070166E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -107,6 +111,8 @@
 		64D65B362D8918660070166E /* PuzzleGame4 */ = {
 			isa = PBXGroup;
 			children = (
+				6411FE9D2D8A9C40002B2339 /* ChooseLevelScreen.swift */,
+				6411FE9E2D8A9C41002B2339 /* PuzzleLevel.swift */,
 				64D65B3B2D8918670070166E /* Assets.xcassets */,
 				64D65B3D2D8918670070166E /* Preview Content */,
 				64D65B392D8918660070166E /* ContentView.swift */,
@@ -283,6 +289,8 @@
 				64D65B382D8918660070166E /* PuzzleGame4App.swift in Sources */,
 				64D65B6E2D8923450070166E /* GameView.swift in Sources */,
 				64D65B6D2D8923450070166E /* PuzzleImageHelper.swift in Sources */,
+				6411FEA02D8A9C41002B2339 /* PuzzleLevel.swift in Sources */,
+				6411FE9F2D8A9C41002B2339 /* ChooseLevelScreen.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

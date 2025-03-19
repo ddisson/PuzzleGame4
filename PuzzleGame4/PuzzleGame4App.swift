@@ -13,7 +13,7 @@ struct PuzzleGame4App: App {
 
     var body: some Scene {
         WindowGroup {
-            GameView()
+            ChooseLevelScreen()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }

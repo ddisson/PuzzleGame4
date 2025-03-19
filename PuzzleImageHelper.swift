@@ -5,6 +5,15 @@ struct PuzzleImageHelper {
     /// Generate puzzle pieces from an image
     /// - Parameters:
     ///   - imageName: The name of the image in Assets.xcassets
+    ///   - gridSize: The size of the grid (e.g., 2 for a 2x2 puzzle)
+    /// - Returns: An array of cropped UIImages representing puzzle pieces
+    static func generatePuzzlePieces(from imageName: String, gridSize: Int) -> [[UIImage]] {
+        return generatePuzzlePieces(from: imageName, gridRows: gridSize, gridColumns: gridSize)
+    }
+    
+    /// Generate puzzle pieces from an image with different row and column counts
+    /// - Parameters:
+    ///   - imageName: The name of the image in Assets.xcassets
     ///   - gridRows: The number of rows in the grid
     ///   - gridColumns: The number of columns in the grid
     /// - Returns: An array of cropped UIImages representing puzzle pieces
@@ -51,11 +60,6 @@ struct PuzzleImageHelper {
         return pieces
     }
     
-    // For backward compatibility
-    static func generatePuzzlePieces(from imageName: String, gridSize: Int) -> [[UIImage]] {
-        return generatePuzzlePieces(from: imageName, gridRows: gridSize, gridColumns: gridSize)
-    }
-    
     /// Creates a renderable Image from a UIImage
     static func imageFromUIImage(_ uiImage: UIImage) -> Image {
         return Image(uiImage: uiImage)
@@ -67,6 +71,12 @@ struct PuzzleImageHelper {
     }
     
     /// Process and save all puzzle pieces to the app's document directory
+    /// This can be used during development to prepare the assets
+    static func processAndSavePuzzlePieces(from imageName: String, gridSize: Int) {
+        processAndSavePuzzlePieces(from: imageName, gridRows: gridSize, gridColumns: gridSize)
+    }
+    
+    /// Process and save all puzzle pieces to the app's document directory with different row and column counts
     /// This can be used during development to prepare the assets
     static func processAndSavePuzzlePieces(from imageName: String, gridRows: Int, gridColumns: Int) {
         let pieces = generatePuzzlePieces(from: imageName, gridRows: gridRows, gridColumns: gridColumns)
@@ -87,11 +97,6 @@ struct PuzzleImageHelper {
                 }
             }
         }
-    }
-    
-    // For backward compatibility
-    static func processAndSavePuzzlePieces(from imageName: String, gridSize: Int) {
-        processAndSavePuzzlePieces(from: imageName, gridRows: gridSize, gridColumns: gridSize)
     }
 }
 

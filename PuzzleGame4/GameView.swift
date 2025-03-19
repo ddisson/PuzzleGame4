@@ -480,8 +480,8 @@ struct GameView: View {
             // Check if this is the correct cell for this piece
             let isCorrectCell = closestCell.row == piece.correctRow && closestCell.column == piece.correctColumn
             
-            // Add a reasonable distance threshold - if it's within the cell width/height
-            let maxAllowableDistance = max(cellWidth, cellHeight) * 0.75 // 75% of cell size
+            // Add a very strict distance threshold - must be almost exactly on the center
+            let maxAllowableDistance = max(cellWidth, cellHeight) * 0.01 // Only 5% of cell size
             let isCloseEnough = closestCell.distance < maxAllowableDistance
             
             if isCorrectCell && isCloseEnough {
@@ -539,12 +539,12 @@ struct GameView: View {
             for cellInfo in row {
                 let cellRect = cellInfo.rect
                 
-                // Make detection reasonably forgiving (less than before)
+                // Make detection very strict - almost exact placement required
                 let expandedRect = CGRect(
-                    x: cellRect.origin.x - cellWidth * 0.3, // More reasonable hit area - 30% expansion
-                    y: cellRect.origin.y - cellHeight * 0.3,
-                    width: cellRect.width + cellWidth * 0.6,
-                    height: cellRect.height + cellHeight * 0.6
+                    x: cellRect.origin.x - cellWidth * 0.01, // Very small hit area - only 2% expansion
+                    y: cellRect.origin.y - cellHeight * 0.01,
+                    width: cellRect.width + cellWidth * 0.02,
+                    height: cellRect.height + cellHeight * 0.02
                 )
                 
                 // Debug hit testing

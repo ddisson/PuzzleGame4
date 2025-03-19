@@ -13,12 +13,14 @@ struct PuzzleLevel: Identifiable {
         case easy
         case medium
         case hard
+        case hardcore
         
         var description: String {
             switch self {
             case .easy: return "Easy"
             case .medium: return "Medium"
             case .hard: return "Hard"
+            case .hardcore: return "Hardcore"
             }
         }
     }
@@ -45,6 +47,13 @@ struct PuzzleLevel: Identifiable {
             gridRows: 3,
             gridColumns: 3,
             difficulty: .hard
+        ),
+        PuzzleLevel(
+            name: "Elza Surgeon",
+            imageName: "elxa_surgeon",
+            gridRows: 4,
+            gridColumns: 3,
+            difficulty: .hardcore
         )
         // Additional levels can be added here
     ]

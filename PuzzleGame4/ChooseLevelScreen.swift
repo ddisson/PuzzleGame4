@@ -48,6 +48,8 @@ struct LevelCard: View {
             return .orange
         case .hard:
             return .red
+        case .hardcore:
+            return .purple
         }
     }
 }

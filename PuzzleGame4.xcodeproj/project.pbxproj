@@ -17,6 +17,7 @@
 		64464B2C2D8D2EA00034419B /* SonyaWins.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 64464B272D8D2EA00034419B /* SonyaWins.m4a */; };
 		64464B2D2D8D2EA00034419B /* gorditsya.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 64464B282D8D2EA00034419B /* gorditsya.m4a */; };
 		64464B2E2D8D2EA00034419B /* welldone.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 64464B292D8D2EA00034419B /* welldone.m4a */; };
+		64464B302D8D37FB0034419B /* LevelNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64464B2F2D8D37FB0034419B /* LevelNavigator.swift */; };
 		64D65B382D8918660070166E /* PuzzleGame4App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D65B372D8918660070166E /* PuzzleGame4App.swift */; };
 		64D65B3A2D8918660070166E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D65B392D8918660070166E /* ContentView.swift */; };
 		64D65B3C2D8918670070166E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64D65B3B2D8918670070166E /* Assets.xcassets */; };
@@ -60,6 +61,7 @@
 		64464B272D8D2EA00034419B /* SonyaWins.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = SonyaWins.m4a; sourceTree = "<group>"; };
 		64464B282D8D2EA00034419B /* gorditsya.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = gorditsya.m4a; sourceTree = "<group>"; };
 		64464B292D8D2EA00034419B /* welldone.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = welldone.m4a; sourceTree = "<group>"; };
+		64464B2F2D8D37FB0034419B /* LevelNavigator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LevelNavigator.swift; sourceTree = "<group>"; };
 		64D65B342D8918660070166E /* PuzzleGame4.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PuzzleGame4.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64D65B372D8918660070166E /* PuzzleGame4App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuzzleGame4App.swift; sourceTree = "<group>"; };
 		64D65B392D8918660070166E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -139,6 +141,7 @@
 		64D65B362D8918660070166E /* PuzzleGame4 */ = {
 			isa = PBXGroup;
 			children = (
+				64464B2F2D8D37FB0034419B /* LevelNavigator.swift */,
 				64464AFB2D8D1F1E0034419B /* AudioManager.swift */,
 				64464AFC2D8D1F1E0034419B /* CongratulationsView.swift */,
 				64464AFA2D8D1F1E0034419B /* FireworksView.swift */,
@@ -326,6 +329,7 @@
 				64D65B6C2D8923450070166E /* PuzzleGame4.xcdatamodeld in Sources */,
 				64464AFE2D8D1F1E0034419B /* AudioManager.swift in Sources */,
 				64D65B382D8918660070166E /* PuzzleGame4App.swift in Sources */,
+				64464B302D8D37FB0034419B /* LevelNavigator.swift in Sources */,
 				64464AFF2D8D1F1E0034419B /* CongratulationsView.swift in Sources */,
 				64D65B6E2D8923450070166E /* GameView.swift in Sources */,
 				64D65B6D2D8923450070166E /* PuzzleImageHelper.swift in Sources */,

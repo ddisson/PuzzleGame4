@@ -6,6 +6,16 @@ struct CongratulationsView: View {
     let onNextLevelTapped: () -> Void
     
     @State private var isImageAnimated = false
+    @Environment(\.presentationMode) var presentationMode
+    
+    // Computed property to find the next level
+    private var nextLevel: PuzzleLevel {
+        if let currentIndex = PuzzleLevel.allLevels.firstIndex(where: { $0.id == level.id }) {
+            let nextIndex = (currentIndex + 1) % PuzzleLevel.allLevels.count
+            return PuzzleLevel.allLevels[nextIndex]
+        }
+        return PuzzleLevel.allLevels.first!
+    }
     
     var body: some View {
         ZStack {
@@ -60,7 +70,20 @@ struct CongratulationsView: View {
                     }
                     
                     // Next level button
-                    Button(action: onNextLevelTapped) {
+                    Button(action: {
+                        print("🎮 Next Level button pressed - current level: \(level.name), next level: \(nextLevel.name)")
+                        
+                        // First close the congratulations view
+                        withAnimation {
+                            isImageAnimated = false
+                        }
+                        
+                        // Give time for the animation to complete
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            // Then call the provided closure to dismiss GameView
+                            onNextLevelTapped()
+                        }
+                    }) {
                         HStack {
                             Text("Next Level")
                             Image(systemName: "arrow.right.circle.fill")

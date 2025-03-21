@@ -55,11 +55,11 @@ struct LevelCard: View {
 }
 
 struct ChooseLevelScreen: View {
-    @State private var navigateToLevel: PuzzleLevel?
+    @StateObject private var levelNavigator = LevelNavigator.shared
     @State private var playNextLevelObserver: NSObjectProtocol?
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $levelNavigator.activeNavigationPath) {
             ScrollView {
                 VStack {
                     // Game Title
@@ -78,7 +78,10 @@ struct ChooseLevelScreen: View {
                         GridItem(.adaptive(minimum: 160), spacing: 20)
                     ], spacing: 20) {
                         ForEach(PuzzleLevel.allLevels) { level in
-                            NavigationLink(value: level) {
+                            Button {
+                                print("📱 Manual selection of level: \(level.name)")
+                                levelNavigator.navigateToLevel(level)
+                            } label: {
                                 LevelCard(level: level)
                             }
                             .buttonStyle(PlainButtonStyle())
@@ -89,51 +92,46 @@ struct ChooseLevelScreen: View {
                 .padding(.bottom, 50)
             }
             .background(Color(UIColor.systemGray6))
-            .navigationBarHidden(true)
             .navigationDestination(for: PuzzleLevel.self) { level in
                 GameView(level: level)
             }
         }
+        .navigationBarHidden(true)
         .onAppear {
+            print("📱 ChooseLevelScreen appeared")
             setupNextLevelNotification()
         }
         .onDisappear {
             if let observer = playNextLevelObserver {
                 NotificationCenter.default.removeObserver(observer)
+                playNextLevelObserver = nil
             }
         }
     }
     
     private func setupNextLevelNotification() {
-        // Make sure we don't add the observer multiple times
-        if playNextLevelObserver == nil {
-            playNextLevelObserver = NotificationCenter.default.addObserver(
-                forName: Notification.Name("PlayNextLevel"),
-                object: nil,
-                queue: .main
-            ) { notification in
-                if let level = notification.userInfo?["nextLevel"] as? PuzzleLevel {
-                    navigateToLevel = level
-                    
-                    // Recreate the navigation stack with the new level
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        if let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) {
-                            if let rootViewController = window.rootViewController {
-                                // Create a new ChooseLevelScreen
-                                let newChooseLevelScreen = ChooseLevelScreen()
-                                
-                                // Trigger navigation to the next level
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    newChooseLevelScreen.navigateToLevel = level
-                                }
-                                
-                                // Reset the root view controller
-                                let hostingController = UIHostingController(rootView: newChooseLevelScreen)
-                                window.rootViewController = hostingController
-                            }
-                        }
-                    }
+        // Clean up existing observer if it exists
+        if let observer = playNextLevelObserver {
+            NotificationCenter.default.removeObserver(observer)
+            playNextLevelObserver = nil
+        }
+        
+        // Add a fresh observer
+        playNextLevelObserver = NotificationCenter.default.addObserver(
+            forName: Notification.Name("PlayNextLevel"),
+            object: nil,
+            queue: .main
+        ) { notification in
+            if let level = notification.userInfo?["nextLevel"] as? PuzzleLevel {
+                print("📱 ChooseLevelScreen received notification to play next level: \(level.name)")
+                
+                // Need to wait for the previous view to be dismissed
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    // Use our shared navigator
+                    self.levelNavigator.navigateToLevel(level)
                 }
+            } else {
+                print("⚠️ Received PlayNextLevel notification but couldn't extract level info")
             }
         }
     }

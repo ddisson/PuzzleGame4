@@ -58,6 +58,13 @@ struct PuzzleLevel: Identifiable, Hashable {
             difficulty: .hard
         ),
         PuzzleLevel(
+            name: "Totoro",
+            imageName: "totoro",
+            gridRows: 3,
+            gridColumns: 3,
+            difficulty: .hard
+        ),
+        PuzzleLevel(
             name: "Elza Surgeon",
             imageName: "elxa_surgeon",
             gridRows: 4,

@@ -408,23 +408,28 @@ struct GameView: View {
                         }
                     },
                     onNextLevelTapped: {
-                        // Play next level
+                        // Close the congratulations view
                         showCongratulations = false
-                        puzzleState.resetGame()
                         
-                        // If we have a next level and we're in a level, push to next level
-                        if let next = nextLevel, level != nil {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                // Create a notification to present the next level
-                                NotificationCenter.default.post(
-                                    name: Notification.Name("PlayNextLevel"),
-                                    object: nil,
-                                    userInfo: ["nextLevel": next]
-                                )
-                                
-                                // Go back to the level selection first
+                        print("📱 Next Level button tapped, next level: \(nextLevel?.name ?? "none")")
+                        
+                        // Store the next level before dismissing
+                        if let nextLevelToPlay = nextLevel {
+                            // First, post a notification with the next level
+                            print("📱 Posting next level notification for \(nextLevelToPlay.name)")
+                            NotificationCenter.default.post(
+                                name: Notification.Name("PlayNextLevel"),
+                                object: nil,
+                                userInfo: ["nextLevel": nextLevelToPlay]
+                            )
+                            
+                            // Then dismiss this view
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                print("📱 Dismissing GameView to return to level selection")
                                 presentationMode.wrappedValue.dismiss()
                             }
+                        } else {
+                            presentationMode.wrappedValue.dismiss()
                         }
                     }
                 )
@@ -679,5 +684,34 @@ struct PuzzlePiece: Identifiable, Equatable {
 struct GameView_Previews: PreviewProvider {
     static var previews: some View {
         GameView()
+    }
+}
+
+// MARK: - UIViewController Extension
+extension UIViewController {
+    func findNavigationController() -> UINavigationController? {
+        // Check if this controller is a navigation controller
+        if let navController = self as? UINavigationController {
+            return navController
+        }
+        
+        // If this controller is presented, check the presenting controller
+        if let presentingVC = self.presentingViewController {
+            return presentingVC.findNavigationController()
+        }
+        
+        // Check parent view controller if it exists
+        if let parent = self.parent {
+            return parent.findNavigationController()
+        }
+        
+        // Check each child view controller
+        for child in self.children {
+            if let navController = child.findNavigationController() {
+                return navController
+            }
+        }
+        
+        return nil
     }
 } 

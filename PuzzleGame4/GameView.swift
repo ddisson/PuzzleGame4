@@ -87,15 +87,15 @@ struct GameView: View {
             let availableWidth = geometry.size.width
             let availableHeight = geometry.size.height
             
-            // Make grid cover 60% of screen width (increased from 45%)
-            let gridWidth = availableWidth * 0.6
+            // Make grid cover 65% of screen width (increased by another 3% from 63%)
+            let gridWidth = availableWidth * 0.65
             let gridHeight = gridWidth / imageAspectRatio
             
             // Calculate cell dimensions
             let cellWidth = (gridWidth - CGFloat(gridColumns - 1) * gridSpacing) / CGFloat(gridColumns)
             let cellHeight = (gridHeight - CGFloat(gridRows - 1) * gridSpacing) / CGFloat(gridRows)
             
-            HStack(alignment: .top, spacing: 10) {
+            HStack(alignment: .top, spacing: 20) { // Increased spacing from 10 to 20 to move pieces right
                 // MARK: Left Side - Puzzle Grid and smaller preview
                 VStack(spacing: 15) {
                     // Level name and back button if we're in a level
@@ -300,7 +300,8 @@ struct GameView: View {
                             }
                         }
                     }
-                    .padding()
+                    .padding(.leading, 15) // Add left padding to move pieces more to the right
+                    .padding(.vertical)
                     
                     Spacer() // Push pieces to the top
                 }

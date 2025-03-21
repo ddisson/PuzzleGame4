@@ -81,8 +81,20 @@ struct CongratulationsView: View {
             }
         }
         .onAppear {
-            // Play victory sound
-            AudioManager.shared.playSound(named: "victory_sound", fileExtension: "m4a")
+            // Debug - print bundle contents to see if audio files are included
+            AudioManager.shared.debugPrintBundleContents()
+            
+            // First try to play a random sound from the VictorySounds folder
+            let didPlayFromFolder = AudioManager.shared.playRandomSound(fromDirectory: "VictorySounds")
+            
+            // Only use fallback if the folder method failed
+            if !didPlayFromFolder {
+                let victoryFiles = ["GoodJob", "MolodecSonya", "SonyaWins", "gorditsya", "welldone"]
+                if let randomSound = victoryFiles.randomElement() {
+                    print("🎵 Falling back to direct file: \(randomSound)")
+                    AudioManager.shared.playSound(named: randomSound)
+                }
+            }
             
             // Start animation sequence
             withAnimation {

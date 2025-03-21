@@ -7,7 +7,7 @@ class AudioManager {
     // Private initializer for singleton
     private init() {}
     
-    func playSound(named filename: String, fileExtension: String = "mp3", volume: Float = 1.0) {
+    func playSound(named filename: String, fileExtension: String = "m4a", volume: Float = 1.0) {
         guard let url = Bundle.main.url(forResource: filename, withExtension: fileExtension) else {
             print("⚠️ Could not find sound file: \(filename).\(fileExtension)")
             return
@@ -30,7 +30,7 @@ class AudioManager {
         }
     }
     
-    func stopSound(named filename: String, fileExtension: String = "mp3") {
+    func stopSound(named filename: String, fileExtension: String = "m4a") {
         guard let url = Bundle.main.url(forResource: filename, withExtension: fileExtension),
               let player = audioPlayers[url] else {
             return

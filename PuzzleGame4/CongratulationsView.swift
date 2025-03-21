@@ -82,7 +82,7 @@ struct CongratulationsView: View {
         }
         .onAppear {
             // Play victory sound
-            AudioManager.shared.playSound(named: "victory_sound")
+            AudioManager.shared.playSound(named: "victory_sound", fileExtension: "m4a")
             
             // Start animation sequence
             withAnimation {

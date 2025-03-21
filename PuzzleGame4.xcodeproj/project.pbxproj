@@ -12,6 +12,7 @@
 		64464AFD2D8D1F1E0034419B /* FireworksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64464AFA2D8D1F1E0034419B /* FireworksView.swift */; };
 		64464AFE2D8D1F1E0034419B /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64464AFB2D8D1F1E0034419B /* AudioManager.swift */; };
 		64464AFF2D8D1F1E0034419B /* CongratulationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64464AFC2D8D1F1E0034419B /* CongratulationsView.swift */; };
+		64464B022D8D283C0034419B /* victory_sound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 64464B012D8D283C0034419B /* victory_sound.m4a */; };
 		64D65B382D8918660070166E /* PuzzleGame4App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D65B372D8918660070166E /* PuzzleGame4App.swift */; };
 		64D65B3A2D8918660070166E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D65B392D8918660070166E /* ContentView.swift */; };
 		64D65B3C2D8918670070166E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64D65B3B2D8918670070166E /* Assets.xcassets */; };
@@ -50,6 +51,7 @@
 		64464AFA2D8D1F1E0034419B /* FireworksView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FireworksView.swift; sourceTree = "<group>"; };
 		64464AFB2D8D1F1E0034419B /* AudioManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
 		64464AFC2D8D1F1E0034419B /* CongratulationsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CongratulationsView.swift; sourceTree = "<group>"; };
+		64464B012D8D283C0034419B /* victory_sound.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = victory_sound.m4a; sourceTree = "<group>"; };
 		64D65B342D8918660070166E /* PuzzleGame4.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PuzzleGame4.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64D65B372D8918660070166E /* PuzzleGame4App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuzzleGame4App.swift; sourceTree = "<group>"; };
 		64D65B392D8918660070166E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -93,6 +95,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		64464B002D8D28210034419B /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				64464B012D8D283C0034419B /* victory_sound.m4a */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
 		64D65B2B2D8918660070166E = {
 			isa = PBXGroup;
 			children = (
@@ -123,6 +133,7 @@
 				6411FE9D2D8A9C40002B2339 /* ChooseLevelScreen.swift */,
 				6411FE9E2D8A9C41002B2339 /* PuzzleLevel.swift */,
 				64D65B3B2D8918670070166E /* Assets.xcassets */,
+				64464B002D8D28210034419B /* Audio */,
 				64D65B3D2D8918670070166E /* Preview Content */,
 				64D65B392D8918660070166E /* ContentView.swift */,
 				64D65B6A2D8923450070166E /* GameView.swift */,
@@ -265,6 +276,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				64D65B3F2D8918670070166E /* Preview Assets.xcassets in Resources */,
+				64464B022D8D283C0034419B /* victory_sound.m4a in Resources */,
 				64D65B3C2D8918670070166E /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

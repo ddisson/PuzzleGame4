@@ -18,6 +18,7 @@
 		64464B2D2D8D2EA00034419B /* gorditsya.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 64464B282D8D2EA00034419B /* gorditsya.m4a */; };
 		64464B2E2D8D2EA00034419B /* welldone.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 64464B292D8D2EA00034419B /* welldone.m4a */; };
 		64464B302D8D37FB0034419B /* LevelNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64464B2F2D8D37FB0034419B /* LevelNavigator.swift */; };
+		64464B332D8D393C0034419B /* totoro.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 64464B322D8D393C0034419B /* totoro.mp3 */; };
 		64D65B382D8918660070166E /* PuzzleGame4App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D65B372D8918660070166E /* PuzzleGame4App.swift */; };
 		64D65B3A2D8918660070166E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D65B392D8918660070166E /* ContentView.swift */; };
 		64D65B3C2D8918670070166E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64D65B3B2D8918670070166E /* Assets.xcassets */; };
@@ -62,6 +63,7 @@
 		64464B282D8D2EA00034419B /* gorditsya.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = gorditsya.m4a; sourceTree = "<group>"; };
 		64464B292D8D2EA00034419B /* welldone.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = welldone.m4a; sourceTree = "<group>"; };
 		64464B2F2D8D37FB0034419B /* LevelNavigator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LevelNavigator.swift; sourceTree = "<group>"; };
+		64464B322D8D393C0034419B /* totoro.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = totoro.mp3; sourceTree = "<group>"; };
 		64D65B342D8918660070166E /* PuzzleGame4.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PuzzleGame4.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64D65B372D8918660070166E /* PuzzleGame4App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuzzleGame4App.swift; sourceTree = "<group>"; };
 		64D65B392D8918660070166E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -117,9 +119,18 @@
 			path = VictorySounds;
 			sourceTree = "<group>";
 		};
+		64464B312D8D391D0034419B /* Soundtracks */ = {
+			isa = PBXGroup;
+			children = (
+				64464B322D8D393C0034419B /* totoro.mp3 */,
+			);
+			path = Soundtracks;
+			sourceTree = "<group>";
+		};
 		64D65B2B2D8918660070166E = {
 			isa = PBXGroup;
 			children = (
+				64464B312D8D391D0034419B /* Soundtracks */,
 				64464B242D8D2E950034419B /* VictorySounds */,
 				64D65B672D8923450070166E /* PuzzleGame4.xcdatamodeld */,
 				64D65B362D8918660070166E /* PuzzleGame4 */,
@@ -297,6 +308,7 @@
 				64464B2E2D8D2EA00034419B /* welldone.m4a in Resources */,
 				64464B2C2D8D2EA00034419B /* SonyaWins.m4a in Resources */,
 				64464B2D2D8D2EA00034419B /* gorditsya.m4a in Resources */,
+				64464B332D8D393C0034419B /* totoro.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

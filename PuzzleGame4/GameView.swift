@@ -356,6 +356,18 @@ struct GameView: View {
                 // Initialize puzzle pieces
                 initializeGridCellPositions()
                 
+                // Play background music for specific levels
+                if let level = level {
+                    // Stop any existing background music
+                    AudioManager.shared.stopAllBackgroundMusic()
+                    
+                    // Play Totoro soundtrack if this is the Totoro level
+                    if level.name == "Totoro" {
+                        print("🎵 This is the Totoro level, playing Totoro soundtrack")
+                        AudioManager.shared.playBackgroundMusic(named: "totoro", volume: 0.6)
+                    }
+                }
+                
                 // Delay piece initialization to ensure grid cells are ready
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                     initializePuzzlePieces()
@@ -367,6 +379,10 @@ struct GameView: View {
                         printGridCellPositions()
                     }
                 }
+            }
+            .onDisappear {
+                // Stop background music when leaving the level
+                AudioManager.shared.stopAllBackgroundMusic()
             }
             .fullScreenCover(isPresented: $showFullImage) {
                 ZStack {

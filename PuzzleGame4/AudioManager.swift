@@ -255,4 +255,117 @@ class AudioManager {
             print("❌ Error listing bundle contents: \(error.localizedDescription)")
         }
     }
+    
+    // MARK: - Background Music Methods
+    
+    /// Dictionary to keep track of background music players
+    private var backgroundMusicPlayers: [String: AVAudioPlayer] = [:]
+    
+    /// Play background music from a file
+    /// - Parameters:
+    ///   - filename: The name of the music file
+    ///   - fileExtension: File extension (default: mp3)
+    ///   - volume: Volume level from 0.0 to 1.0
+    ///   - loop: Whether to loop the music
+    /// - Returns: True if music started playing, false otherwise
+    @discardableResult
+    func playBackgroundMusic(named filename: String, fileExtension: String = "mp3", volume: Float = 0.5, loop: Bool = true) -> Bool {
+        print("🎵 Attempting to play background music: \(filename).\(fileExtension)")
+        
+        // First try to find the music file in the bundle
+        var musicURL: URL? = nil
+        
+        // Check in the main bundle
+        if let url = Bundle.main.url(forResource: filename, withExtension: fileExtension) {
+            musicURL = url
+            print("✅ Found music file in main bundle: \(url.path)")
+        }
+        
+        // Check in Soundtracks directory
+        if musicURL == nil {
+            let soundtracksPath = Bundle.main.bundlePath + "/Soundtracks"
+            let potentialPath = soundtracksPath + "/" + filename + "." + fileExtension
+            let fileURL = URL(fileURLWithPath: potentialPath)
+            
+            if FileManager.default.fileExists(atPath: potentialPath) {
+                musicURL = fileURL
+                print("✅ Found music file in Soundtracks directory: \(potentialPath)")
+            }
+        }
+        
+        // Check in project root directory
+        if musicURL == nil {
+            let projectRoot = Bundle.main.bundlePath + "/../.."
+            let soundtracksPath = projectRoot + "/Soundtracks"
+            let potentialPath = soundtracksPath + "/" + filename + "." + fileExtension
+            let fileURL = URL(fileURLWithPath: potentialPath)
+            
+            if FileManager.default.fileExists(atPath: potentialPath) {
+                musicURL = fileURL
+                print("✅ Found music file in project root: \(potentialPath)")
+            }
+        }
+        
+        // Check at absolute path (for development)
+        if musicURL == nil {
+            let absolutePath = "/Users/dmitrydisson/Documents/Games/PuzzleGame4/Soundtracks/\(filename).\(fileExtension)"
+            let fileURL = URL(fileURLWithPath: absolutePath)
+            
+            if FileManager.default.fileExists(atPath: absolutePath) {
+                musicURL = fileURL
+                print("✅ Found music file at absolute path: \(absolutePath)")
+            }
+        }
+        
+        // If we found a URL, play the music
+        if let url = musicURL {
+            do {
+                // Stop any existing background music with this name
+                stopBackgroundMusic(named: filename)
+                
+                // Create a new player
+                let player = try AVAudioPlayer(contentsOf: url)
+                player.volume = volume
+                player.prepareToPlay()
+                
+                // Set up looping if needed
+                if loop {
+                    player.numberOfLoops = -1 // Infinite loop
+                }
+                
+                // Store for later reference
+                backgroundMusicPlayers[filename] = player
+                
+                // Start playing
+                player.play()
+                print("🎵 Started playing background music: \(filename)")
+                return true
+            } catch {
+                print("⚠️ Could not create audio player for background music: \(error.localizedDescription)")
+            }
+        } else {
+            print("⚠️ Could not find background music file: \(filename).\(fileExtension)")
+        }
+        
+        return false
+    }
+    
+    /// Stop background music by name
+    /// - Parameter filename: The name of the music file (without extension)
+    func stopBackgroundMusic(named filename: String) {
+        if let player = backgroundMusicPlayers[filename] {
+            player.stop()
+            backgroundMusicPlayers.removeValue(forKey: filename)
+            print("🎵 Stopped background music: \(filename)")
+        }
+    }
+    
+    /// Stop all background music
+    func stopAllBackgroundMusic() {
+        for (name, player) in backgroundMusicPlayers {
+            player.stop()
+            print("🎵 Stopped background music: \(name)")
+        }
+        backgroundMusicPlayers.removeAll()
+    }
 } 

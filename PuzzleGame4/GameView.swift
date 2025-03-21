@@ -39,6 +39,7 @@ struct GameView: View {
     @State private var draggedPieceIndex: Int? = nil
     @State private var dragOffset = CGSize.zero
     @State private var showFullImage = false
+    @State private var showCongratulations = false
     @State private var gridCellPositions: [[(row: Int, column: Int, rect: CGRect)]] = []
     @State private var debugging = true // Set to true to help debug placement issues
     @State private var gridInitialized = false // Flag to track if grid cells are initialized
@@ -79,6 +80,18 @@ struct GameView: View {
             return uiImage.size.width / uiImage.size.height
         }
         return 1.5 // Default fallback
+    }
+    
+    // Find the next level to play
+    private var nextLevel: PuzzleLevel? {
+        guard let currentLevel = level else { return PuzzleLevel.allLevels.first }
+        
+        if let currentIndex = PuzzleLevel.allLevels.firstIndex(where: { $0.id == currentLevel.id }) {
+            let nextIndex = (currentIndex + 1) % PuzzleLevel.allLevels.count
+            return PuzzleLevel.allLevels[nextIndex]
+        }
+        
+        return PuzzleLevel.allLevels.first
     }
     
     // MARK: - Body
@@ -383,15 +396,46 @@ struct GameView: View {
                     showFullImage = false
                 }
             }
-            .alert(isPresented: $puzzleState.puzzleCompleted) {
-                Alert(
-                    title: Text("Puzzle Completed!"),
-                    message: Text("Great job! You finished the puzzle."),
-                    dismissButton: .default(Text("Play Again"), action: {
-                        // Reset the game
+            .fullScreenCover(isPresented: $showCongratulations) {
+                // Show congratulations view when puzzle is completed
+                CongratulationsView(
+                    level: level ?? PuzzleLevel.allLevels.first!,
+                    onMenuTapped: {
+                        // Go back to level selection
+                        showCongratulations = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                    },
+                    onNextLevelTapped: {
+                        // Play next level
+                        showCongratulations = false
                         puzzleState.resetGame()
-                    })
+                        
+                        // If we have a next level and we're in a level, push to next level
+                        if let next = nextLevel, level != nil {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                // Create a notification to present the next level
+                                NotificationCenter.default.post(
+                                    name: Notification.Name("PlayNextLevel"),
+                                    object: nil,
+                                    userInfo: ["nextLevel": next]
+                                )
+                                
+                                // Go back to the level selection first
+                                presentationMode.wrappedValue.dismiss()
+                            }
+                        }
+                    }
                 )
+            }
+            .onChange(of: puzzleState.puzzleCompleted) { completed in
+                if completed {
+                    // Show congratulations view with a slight delay to ensure all animations are complete
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        showCongratulations = true
+                    }
+                }
             }
         }
     }
@@ -484,7 +528,7 @@ struct GameView: View {
             let isCorrectCell = closestCell.row == piece.correctRow && closestCell.column == piece.correctColumn
             
             // Add a very strict distance threshold - must be almost exactly on the center
-            let maxAllowableDistance = max(cellWidth, cellHeight) * 0.01 // Only 5% of cell size
+            let maxAllowableDistance = max(cellWidth, cellHeight) * 0.01 // Only 1% of cell size
             let isCloseEnough = closestCell.distance < maxAllowableDistance
             
             if isCorrectCell && isCloseEnough {
@@ -544,7 +588,7 @@ struct GameView: View {
                 
                 // Make detection very strict - almost exact placement required
                 let expandedRect = CGRect(
-                    x: cellRect.origin.x - cellWidth * 0.01, // Very small hit area - only 2% expansion
+                    x: cellRect.origin.x - cellWidth * 0.01, // Very small hit area - only 1% expansion
                     y: cellRect.origin.y - cellHeight * 0.01,
                     width: cellRect.width + cellWidth * 0.02,
                     height: cellRect.height + cellHeight * 0.02

@@ -1,13 +1,22 @@
 import Foundation
 import UIKit
 
-struct PuzzleLevel: Identifiable {
+struct PuzzleLevel: Identifiable, Hashable {
     let id = UUID()
     let name: String
     let imageName: String
     let gridRows: Int
     let gridColumns: Int
     let difficulty: Difficulty
+    
+    // Implement Hashable conformance
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: PuzzleLevel, rhs: PuzzleLevel) -> Bool {
+        return lhs.id == rhs.id
+    }
     
     enum Difficulty {
         case easy

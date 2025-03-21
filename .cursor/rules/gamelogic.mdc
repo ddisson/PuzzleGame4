@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Don't adjust the blocks architecture
+
+- Gameview logic and code architecture of blocks should remain the same
+
